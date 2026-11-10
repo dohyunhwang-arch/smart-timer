@@ -1403,4 +1403,1411 @@
         };
     </script>
 </body>
+=======
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 강의실 비주얼 타이머 Pro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pretendard Font for Ultra-Clean Korean & Tabular Numerals -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            /* Default Theme: Pastel Mint (Original Improved) */
+            --bg-gradient-from: #cbece5;
+            --bg-gradient-to: #e2f5f1;
+            --surface-bg: rgba(255, 255, 255, 0.72);
+            --surface-border: rgba(255, 255, 255, 0.9);
+            --text-primary: #1e3a3a;
+            --text-secondary: #4a6b6b;
+            --text-muted: #6e8f8f;
+            --digit-color: #2c4c4c;
+            --accent-normal: #14b8a6; /* Teal 500 */
+            --accent-warning: #f59e0b; /* Amber 500 */
+            --accent-danger: #ef4444; /* Red 500 */
+            --clock-rim: #f07178;
+            --clock-face: #ffffff;
+            --track-base: #d9777f;
+            --track-border: #f3e5ab;
+            --btn-bg: rgba(255, 255, 255, 0.85);
+            --btn-hover: #ffffff;
+            --btn-text: #274444;
+            --shadow-color: rgba(20, 80, 80, 0.12);
+        }
+
+        [data-theme="high-contrast"] {
+            /* High-Contrast Light for Bright Classrooms / Washed-out Projectors */
+            --bg-gradient-from: #f8fafc;
+            --bg-gradient-to: #eef2f6;
+            --surface-bg: #ffffff;
+            --surface-border: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --digit-color: #0f172a;
+            --accent-normal: #0284c7; /* Vivid Sky 600 */
+            --accent-warning: #d97706; /* Vivid Amber 600 */
+            --accent-danger: #dc2626; /* Vivid Red 600 */
+            --clock-rim: #e11d48;
+            --clock-face: #ffffff;
+            --track-base: #be123c;
+            --track-border: #fde047;
+            --btn-bg: #ffffff;
+            --btn-hover: #f1f5f9;
+            --btn-text: #0f172a;
+            --shadow-color: rgba(15, 23, 42, 0.15);
+        }
+
+        [data-theme="dark"] {
+            /* OLED / Glare-Free Dark Mode */
+            --bg-gradient-from: #0f172a;
+            --bg-gradient-to: #1e293b;
+            --surface-bg: rgba(30, 41, 59, 0.8);
+            --surface-border: rgba(71, 85, 105, 0.6);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --digit-color: #f8fafc;
+            --accent-normal: #2dd4bf; /* Teal 400 */
+            --accent-warning: #fbbf24; /* Amber 400 */
+            --accent-danger: #f87171; /* Red 400 */
+            --clock-rim: #fb7185;
+            --clock-face: #1e293b;
+            --track-base: #9f1239;
+            --track-border: #fcd34d;
+            --btn-bg: rgba(51, 65, 85, 0.9);
+            --btn-hover: #475569;
+            --btn-text: #f8fafc;
+            --shadow-color: rgba(0, 0, 0, 0.45);
+        }
+
+        * {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-gradient-from), var(--bg-gradient-to));
+            color: var(--text-primary);
+            transition: background 0.4s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Tabular numerals prevent jittering during countdown */
+        .tabular-digits {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.03em;
+            color: var(--digit-color);
+            text-shadow: 0 4px 24px var(--shadow-color);
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+
+        /* Urgent pulse when < 10 seconds */
+        @keyframes urgentPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .urgent-pulse {
+            animation: urgentPulse 1s infinite ease-in-out;
+            color: var(--accent-danger) !important;
+        }
+
+        /* Runner bobbing animation when running */
+        @keyframes runnerBounce {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-6px) rotate(4deg); }
+            50% { transform: translateY(0px) rotate(0deg); }
+            75% { transform: translateY(-5px) rotate(-4deg); }
+        }
+        .runner-active {
+            animation: runnerBounce 0.55s infinite ease-in-out;
+        }
+
+        /* Sweat drop animation */
+        @keyframes sweatFly {
+            0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+            40% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-14px, -12px) scale(1.1); }
+        }
+        .sweat-active {
+            animation: sweatFly 0.8s infinite ease-out;
+        }
+
+        /* Bell shake animation on finish */
+        @keyframes bellRing {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(14deg); }
+            30% { transform: rotate(-14deg); }
+            45% { transform: rotate(10deg); }
+            60% { transform: rotate(-10deg); }
+            75% { transform: rotate(4deg); }
+            85% { transform: rotate(-4deg); }
+        }
+        .bell-ringing {
+            animation: bellRing 0.5s infinite ease-in-out;
+            transform-origin: center bottom;
+        }
+
+        /* Glassmorphism surface */
+        .glass-card {
+            background: var(--surface-bg);
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            backdrop-filter: blur(12px);
+        }
+
+        .control-btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid var(--surface-border);
+            box-shadow: 0 3px 10px var(--shadow-color);
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .control-btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--shadow-color);
+        }
+        .control-btn:active {
+            transform: translateY(0px);
+        }
+
+        /* Auto-hide Zen Mode Transition */
+        .zen-fade {
+            transition: opacity 0.45s ease, transform 0.45s ease;
+        }
+        body.zen-active .zen-hideable {
+            opacity: 0.08;
+            pointer-events: none;
+        }
+        body.zen-active .zen-hideable:hover {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-teal-500 selection:text-white">
+
+    <!-- ================= TOP BAR (Real-time Clock, Critique Modal, Theme & Zen Controls) ================= -->
+    <header class="w-full px-6 py-4 flex flex-wrap items-center justify-between gap-4 z-20 zen-fade zen-hideable">
+        <!-- Left: Live Current Time Badge -->
+        <div class="glass-card px-4 py-2 rounded-full flex items-center gap-3">
+            <span class="relative flex h-3 w-3">
+                <span id="liveDotPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                <span id="liveDot" class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+            </span>
+            <span class="text-sm font-medium" style="color: var(--text-secondary);">현재 시각</span>
+            <span id="realTimeClock" class="text-base font-bold tabular-nums tracking-tight">오전 11:08:00</span>
+        </div>
+
+        <!-- Right: Theme Switcher, Pre-bell Toggle, Critique Note Button -->
+        <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Theme Selector Pills -->
+            <div class="glass-card p-1 rounded-full flex items-center text-xs font-semibold">
+                <button onclick="setTheme('pastel')" id="theme-pastel" class="px-3 py-1.5 rounded-full transition-all bg-teal-600 text-white shadow-sm">
+                    🌱 파스텔 민트
+                </button>
+                <button onclick="setTheme('high-contrast')" id="theme-high-contrast" class="px-3 py-1.5 rounded-full transition-all hover:opacity-80">
+                    ☀️ 고대비 프로젝터
+                </button>
+                <button onclick="setTheme('dark')" id="theme-dark" class="px-3 py-1.5 rounded-full transition-all hover:opacity-80">
+                    🌙 다크 모드
+                </button>
+            </div>
+
+            <!-- 1-Min Warning Bell Toggle -->
+            <button onclick="togglePreWarning()" id="preWarnBtn" class="control-btn px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5" title="종료 1분 전 예비 알림음 울리기">
+                <i class="ph-fill ph-bell-ringing text-amber-500 text-sm"></i>
+                <span>1분 전 예비종: <b id="preWarnState">켜짐</b></span>
+            </button>
+
+            <!-- Auto-Dim (Zen Mode) Toggle -->
+            <button onclick="toggleAutoZen()" id="zenToggleBtn" class="control-btn px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5" title="마우스 미사용 시 버튼 자동 숨김">
+                <i class="ph ph-eye-slash text-sm"></i>
+                <span>버튼 자동숨김: <b id="zenState">켜짐</b></span>
+            </button>
+
+            <!-- Instant Sound Test & Chime Selector -->
+            <button onclick="testBellNow()" id="topSoundTestBtn" class="control-btn px-3.5 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 border-amber-500/50 bg-amber-500/10 hover:bg-amber-500/20">
+                <i class="ph-fill ph-speaker-high text-amber-600 dark:text-amber-400 text-sm"></i>
+                <span id="audioStatusBadge">🔔 소리 테스트</span>
+            </button>
+
+            <!-- UX Critic's Improvement Points Modal Trigger -->
+            <button onclick="toggleCritiqueModal(true)" class="control-btn px-3.5 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 border-teal-500/40">
+                <i class="ph-fill ph-sparkle text-teal-500 text-sm"></i>
+                <span>비평가 개선 포인트</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ================= MAIN 2-COLUMN PROJECTION STAGE ================= -->
+    <main class="flex-1 w-full max-w-[1600px] mx-auto px-6 lg:px-12 py-2 grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-6">
+        
+        <!-- LEFT COLUMN: 3D-Style SVG Visual Alarm Clock & Running Track (5 Cols on large screens) -->
+        <div class="lg:col-span-5 flex flex-col items-center justify-center relative">
+            <div class="w-full max-w-[500px] aspect-square relative flex items-center justify-center">
+                <!-- Interactive SVG Scene -->
+                <svg id="clockScene" viewBox="0 0 500 480" class="w-full h-full drop-shadow-xl overflow-visible">
+                    <defs>
+                        <!-- Soft Shadows -->
+                        <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+                            <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#0f2929" flood-opacity="0.18"/>
+                        </filter>
+                        <filter id="InnerShadow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.12"/>
+                        </filter>
+                        <!-- Metallic Gradient for Bells & Legs -->
+                        <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#e2e8f0" />
+                            <stop offset="50%" stop-color="#94a3b8" />
+                            <stop offset="100%" stop-color="#64748b" />
+                        </linearGradient>
+                        <!-- Clock Rim Gradient -->
+                        <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#fb7185" />
+                            <stop offset="100%" stop-color="#e11d48" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- 1. ISOMETRIC RUNNING TRACK BASE -->
+                    <g id="runningTrack" transform="translate(250, 390)">
+                        <!-- Track 3D Thickness / Side -->
+                        <ellipse cx="0" cy="14" rx="215" ry="68" fill="#c7b299" opacity="0.6" />
+                        <ellipse cx="0" cy="8" rx="215" ry="68" fill="#fef3c7" />
+                        <!-- Outer Track Surface -->
+                        <ellipse cx="0" cy="0" rx="205" ry="62" fill="var(--track-base)" stroke="#fef08a" stroke-width="6" />
+                        <!-- Dashed Running Lane -->
+                        <ellipse cx="0" cy="0" rx="168" ry="48" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="14 12" opacity="0.85" />
+                        <!-- Inner Infield -->
+                        <ellipse cx="0" cy="0" rx="132" ry="35" fill="#d1fae5" stroke="#ffffff" stroke-width="3" />
+                        <!-- Clock Ground Shadow -->
+                        <ellipse cx="0" cy="2" rx="95" ry="20" fill="#0f172a" opacity="0.2" />
+                    </g>
+
+                    <!-- 2. ALARM CLOCK BODY -->
+                    <g id="alarmClockGroup" transform="translate(250, 230)">
+                        <!-- Left & Right Metal Legs -->
+                        <path d="M -65 110 L -90 165" stroke="url(#metalGrad)" stroke-width="14" stroke-linecap="round" />
+                        <path d="M 65 110 L 90 165" stroke="url(#metalGrad)" stroke-width="14" stroke-linecap="round" />
+
+                        <!-- Top Center Hammer Post -->
+                        <rect x="-6" y="-168" width="12" height="32" rx="4" fill="url(#metalGrad)" />
+                        <rect x="-18" y="-172" width="36" height="9" rx="4" fill="url(#metalGrad)" />
+
+                        <!-- Twin Alarm Bells (Animated on Finish) -->
+                        <g id="alarmBells">
+                            <!-- Left Bell Strut & Dome -->
+                            <g transform="rotate(-34, -85, -115)">
+                                <rect x="-89" y="-135" width="8" height="25" fill="#64748b" />
+                                <path d="M -130 -125 A 45 45 0 0 1 -40 -125 Z" fill="url(#metalGrad)" filter="url(#InnerShadow)" />
+                                <circle cx="-85" cy="-168" r="6" fill="#94a3b8" />
+                            </g>
+                            <!-- Right Bell Strut & Dome -->
+                            <g transform="rotate(34, 85, -115)">
+                                <rect x="81" y="-135" width="8" height="25" fill="#64748b" />
+                                <path d="M 40 -125 A 45 45 0 0 1 130 -125 Z" fill="url(#metalGrad)" filter="url(#InnerShadow)" />
+                                <circle cx="85" cy="-168" r="6" fill="#94a3b8" />
+                            </g>
+                        </g>
+
+                        <!-- Outer Alarm Clock Case -->
+                        <circle cx="0" cy="0" r="136" fill="url(#rimGrad)" filter="url(#dropShadow)" />
+                        <!-- Inner Bezel Highlight -->
+                        <circle cx="0" cy="0" r="122" fill="#f43f5e" />
+                        <!-- White Clock Face -->
+                        <circle cx="0" cy="0" r="115" fill="var(--clock-face)" />
+
+                        <!-- 3. DYNAMIC REMAINING TIME PIE SECTOR -->
+                        <!-- Drawn dynamically via JS from 12 o'clock -->
+                        <path id="timeSectorPath" d="M 0 0 L 0 -114 A 114 114 0 1 1 -0.01 -114 Z" fill="var(--accent-normal)" opacity="0.55" class="transition-colors duration-500" />
+
+                        <!-- 4. DYNAMIC CLOCK TICK MARKS & PROPORTIONAL TIME SCALE -->
+                        <g id="clockFaceMarks">
+                            <!-- Minute/Sub Ticks (Generated by JS on load) -->
+                            <g id="minuteTicks"></g>
+                            
+                            <!-- 12 O'Clock Highlight Pill for Total Set Duration -->
+                            <g transform="translate(0, -86)">
+                                <rect x="-34" y="-14" width="68" height="26" rx="13" fill="var(--accent-normal)" opacity="0.16" id="dialTopPill" />
+                                <text id="dialLabel12" x="0" y="0" font-size="18" font-weight="900" fill="var(--text-primary)" text-anchor="middle" dominant-baseline="central">10분</text>
+                            </g>
+
+                            <!-- 3, 6, 9 Quadrant Proportional Labels + 8 Minor Ratio Dots -->
+                            <g font-size="13.5" font-weight="800" fill="var(--text-secondary)" text-anchor="middle" dominant-baseline="central">
+                                <text id="dialLabel3" x="82" y="0">7분30초</text>
+                                <text id="dialLabel6" x="0" y="88">5분</text>
+                                <text id="dialLabel9" x="-82" y="0">2분30초</text>
+                            </g>
+
+                            <!-- Intermediate 8-hour positions as subtle proportional markers -->
+                            <g id="dialSubMarkers" font-size="10.5" font-weight="700" fill="var(--text-muted)" opacity="0.75" text-anchor="middle" dominant-baseline="central">
+                                <text id="dialSub1" x="45" y="-78">·</text>
+                                <text id="dialSub2" x="78" y="-45">·</text>
+                                <text id="dialSub4" x="78" y="45">·</text>
+                                <text id="dialSub5" x="45" y="78">·</text>
+                                <text id="dialSub7" x="-45" y="78">·</text>
+                                <text id="dialSub8" x="-78" y="45">·</text>
+                                <text id="dialSub10" x="-78" y="-45">·</text>
+                                <text id="dialSub11" x="-45" y="-78">·</text>
+                            </g>
+                        </g>
+
+                        <!-- 5. CLOCK HANDS -->
+                        <!-- Ghost Target Hand (Shows 12 o'clock start/end line) -->
+                        <line id="startMarkerHand" x1="0" y1="0" x2="0" y2="-102" stroke="var(--accent-normal)" stroke-width="2.5" stroke-dasharray="4 4" opacity="0.7" />
+
+                        <!-- Active Countdown Sweep Hand (Primary Hand) -->
+                        <g id="clockMinuteHandGroup" transform="rotate(0)">
+                            <line x1="0" y1="20" x2="0" y2="-96" stroke="#1e293b" stroke-width="6.5" stroke-linecap="round" />
+                            <circle cx="0" cy="-76" r="4.5" fill="var(--accent-normal)" />
+                        </g>
+
+                        <!-- Second Hand (Sweeps once per 60s) -->
+                        <g id="clockSecondHandGroup" transform="rotate(0)">
+                            <line x1="0" y1="24" x2="0" y2="-102" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round" />
+                        </g>
+
+                        <!-- Center Pin Cap -->
+                        <circle cx="0" cy="0" r="9" fill="#475569" />
+                        <circle cx="0" cy="0" r="4" fill="#e2e8f0" />
+                    </g>
+
+                    <!-- 6. ANIMATED RUNNER CHARACTER ON THE TRACK -->
+                    <!-- Positioned on the right curve of the track, or orbiting -->
+                    <g id="runnerOrbitWrapper" transform="translate(385, 315)">
+                        <g id="runnerCharacter" class="runner-active">
+                            <!-- Sweat Drops (Visible when running) -->
+                            <g id="runnerSweat" class="sweat-active">
+                                <path d="M -22 -55 Q -28 -62 -22 -68 Q -16 -62 -22 -55 Z" fill="#38bdf8" />
+                                <path d="M 28 -48 Q 34 -55 28 -61 Q 22 -55 28 -48 Z" fill="#38bdf8" />
+                            </g>
+
+                            <!-- Runner Shadow -->
+                            <ellipse cx="0" cy="76" rx="22" ry="7" fill="#0f172a" opacity="0.22" />
+
+                            <!-- Back Leg -->
+                            <path d="M -4 32 L -18 54 L -8 70" fill="none" stroke="#fcd34d" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                            <rect x="-15" y="66" width="16" height="8" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+
+                            <!-- Back Arm -->
+                            <path d="M -6 -2 L -22 14 L -12 26" fill="none" stroke="#fcd34d" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+
+                            <!-- Torso (Sport Shirt) -->
+                            <rect x="-15" y="-12" width="30" height="40" rx="12" fill="#60a5fa" />
+                            <path d="M -14 6 L 14 6" stroke="#ffffff" stroke-width="4" opacity="0.7" />
+
+                            <!-- Shorts -->
+                            <path d="M -14 22 L 14 22 L 16 38 L 2 38 L 0 30 L -2 38 L -16 38 Z" fill="#334155" />
+
+                            <!-- Front Leg -->
+                            <path d="M 6 32 L 16 52 L 6 70" fill="none" stroke="#fde68a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                            <rect x="0" y="66" width="17" height="8" rx="4" fill="#ffffff" stroke="#ef4444" stroke-width="1.5" />
+
+                            <!-- Front Arm -->
+                            <path d="M 8 -2 L 22 12 L 10 22" fill="none" stroke="#fde68a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+
+                            <!-- Head -->
+                            <circle cx="0" cy="-34" r="20" fill="#fde68a" />
+                            <!-- Hair -->
+                            <path d="M -20 -36 A 20 20 0 0 1 20 -36 Q 10 -46 -20 -36 Z" fill="#475569" />
+                            <!-- Athletic Headband -->
+                            <rect x="-20" y="-42" width="40" height="7" rx="3" fill="#ffffff" />
+                            <rect x="-20" y="-40" width="40" height="3" fill="#ef4444" />
+                            <!-- Determined Eyes & Rosy Cheeks -->
+                            <circle cx="-7" cy="-31" r="2.3" fill="#1e293b" />
+                            <circle cx="7" cy="-31" r="2.3" fill="#1e293b" />
+                            <ellipse cx="-12" cy="-26" rx="3.5" ry="2" fill="#fb7185" opacity="0.6" />
+                            <ellipse cx="12" cy="-26" rx="3.5" ry="2" fill="#fb7185" opacity="0.6" />
+                            <!-- Mouth -->
+                            <path id="runnerMouth" d="M -4 -23 Q 0 -19 4 -23" fill="none" stroke="#1e293b" stroke-width="2" stroke-linecap="round" />
+                        </g>
+                    </g>
+                </svg>
+
+                <!-- Remaining Percentage & Scale Mode Toggle Floating Badge below track -->
+                <div class="absolute bottom-1 flex flex-wrap items-center justify-center gap-2">
+                    <div class="glass-card px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide flex items-center gap-2">
+                        <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                        <span id="progressPercentText">남은 비율 100%</span>
+                    </div>
+                    <button onclick="toggleDialScaleMode()" class="control-btn px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1" title="3시·6시·9시 눈금 표기 기준 변경">
+                        <i class="ph-bold ph-arrows-clockwise text-teal-600"></i>
+                        <span id="dialScaleModeText">눈금: 남은시간 기준</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Giant Countdown Display, End-Time Context & Ergonomic Controls (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col items-center justify-center text-center">
+            
+            <!-- 1. Editable Activity Title & Quick Category Chips -->
+            <div class="flex flex-col items-center gap-2 mb-1">
+                <!-- Quick Mode Chips (Auto-hidden in Zen Mode) -->
+                <div class="flex flex-wrap justify-center gap-1.5 mb-1 zen-fade zen-hideable">
+                    <button onclick="setActivityTitle('쉬는 시간')" class="px-3 py-1 rounded-full text-xs font-semibold control-btn">☕ 쉬는 시간</button>
+                    <button onclick="setActivityTitle('실습 및 과제 시간')" class="px-3 py-1 rounded-full text-xs font-semibold control-btn">💻 실습 시간</button>
+                    <button onclick="setActivityTitle('조별 토의 시간')" class="px-3 py-1 rounded-full text-xs font-semibold control-btn">💬 조별 토의</button>
+                    <button onclick="setActivityTitle('퀴즈 / 시험 시간')" class="px-3 py-1 rounded-full text-xs font-semibold control-btn">📝 시험 시간</button>
+                    <button onclick="setActivityTitle('점심 시간')" class="px-3 py-1 rounded-full text-xs font-semibold control-btn">🍱 점심 시간</button>
+                </div>
+
+                <!-- Editable Main Heading -->
+                <div class="group relative inline-flex items-center gap-2 px-4 py-1 rounded-2xl hover:bg-white/20 transition cursor-pointer" onclick="focusTitleEdit()">
+                    <h1 id="activityTitle" contenteditable="true" spellcheck="false" 
+                        class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight outline-none focus:ring-2 focus:ring-teal-500 rounded-lg px-2"
+                        onkeydown="if(event.key==='Enter'){event.preventDefault(); this.blur();}">쉬는 시간</h1>
+                    <i class="ph ph-pencil-simple text-xl opacity-0 group-hover:opacity-60 transition zen-hideable" title="클릭하여 제목 수정"></i>
+                </div>
+            </div>
+
+            <!-- 2. GIANT TABULAR DIGITAL TIMER -->
+            <div class="relative my-1 select-none">
+                <div id="digitalDisplay" onclick="openCustomTimeModal()"
+                     title="클릭하여 시간 직접 입력"
+                     class="tabular-digits font-black text-[6.5rem] sm:text-[9.5rem] xl:text-[11.5rem] leading-none cursor-pointer hover:opacity-90 transition">
+                    10:00
+                </div>
+            </div>
+
+            <!-- 3. DYNAMIC END TIME & RESUME CONTEXT PILL (Major Critique Upgrade) -->
+            <div class="mt-2 mb-6 flex flex-col sm:flex-row items-center gap-2.5">
+                <div class="glass-card px-6 py-2.5 rounded-2xl flex items-center gap-3 border-2" id="endTimeCard" style="border-color: var(--surface-border);">
+                    <i class="ph-fill ph-clock-countdown text-2xl" style="color: var(--accent-normal);" id="endTimeIcon"></i>
+                    <div class="text-left">
+                        <div id="endTimeMainText" class="text-xl sm:text-2xl font-extrabold tracking-tight">
+                            오전 11:18에 끝나요
+                        </div>
+                        <div id="endTimeSubText" class="text-xs sm:text-sm font-medium" style="color: var(--text-secondary);">
+                            정각에 수업이 다시 시작됩니다
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. LECTURE CONTROL DECK (Auto-dims in Zen Mode so screen looks like clean signage) -->
+            <div class="w-full max-w-xl flex flex-col gap-3 zen-fade zen-hideable">
+                
+                <!-- Row A: Quick Time Presets -->
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider mr-1" style="color: var(--text-muted);">빠른 설정</span>
+                    <button onclick="setPresetMinutes(3)" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold">3분</button>
+                    <button onclick="setPresetMinutes(5)" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold">5분</button>
+                    <button onclick="setPresetMinutes(10)" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold ring-2 ring-teal-500/40">10분</button>
+                    <button onclick="setPresetMinutes(15)" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold">15분</button>
+                    <button onclick="setPresetMinutes(20)" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold">20분</button>
+                    <button onclick="setPresetMinutes(30)" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold">30분</button>
+                    <button onclick="setPresetMinutes(50)" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold">50분</button>
+                    <button onclick="openCustomTimeModal()" class="control-btn px-3.5 py-1.5 rounded-xl text-sm font-bold text-teal-600 dark:text-teal-400">
+                        <i class="ph-bold ph-keyboard"></i> 직접입력
+                    </button>
+                </div>
+
+                <!-- Row B: Primary Transport & Fine Adjustment (Matches & Upgrades Original Layout) -->
+                <div class="grid grid-cols-5 sm:grid-cols-7 gap-2.5 items-center mt-1">
+                    <!-- -1 Min -->
+                    <button onclick="adjustTime(-60)" class="control-btn flex flex-col items-center justify-center py-3 rounded-2xl font-bold text-sm sm:text-base" title="1분 감소 (↓)">
+                        <span>-1분</span>
+                    </button>
+                    <!-- -10 Sec -->
+                    <button onclick="adjustTime(-10)" class="control-btn hidden sm:flex flex-col items-center justify-center py-3 rounded-2xl font-bold text-sm" title="10초 감소 (←)">
+                        <span>-10초</span>
+                    </button>
+
+                    <!-- Main Play / Pause Button (Spans 3 cols) -->
+                    <button id="playPauseBtn" onclick="toggleTimer()" 
+                            class="col-span-3 py-3.5 px-6 rounded-2xl font-extrabold text-xl text-white shadow-lg flex items-center justify-center gap-2.5 transition transform active:scale-95"
+                            style="background-color: var(--accent-normal);">
+                        <i id="playPauseIcon" class="ph-fill ph-pause text-2xl"></i>
+                        <span id="playPauseText">일시정지</span>
+                    </button>
+
+                    <!-- +10 Sec -->
+                    <button onclick="adjustTime(10)" class="control-btn hidden sm:flex flex-col items-center justify-center py-3 rounded-2xl font-bold text-sm" title="10초 추가 (→)">
+                        <span>+10초</span>
+                    </button>
+                    <!-- +1 Min -->
+                    <button onclick="adjustTime(60)" class="control-btn flex flex-col items-center justify-center py-3 rounded-2xl font-bold text-sm sm:text-base" title="1분 추가 (↑)">
+                        <span>+1분</span>
+                    </button>
+                </div>
+
+                <!-- Row C: Utility Controls (Reset, Sound/Test, Fullscreen) -->
+                <div class="grid grid-cols-3 gap-2.5">
+                    <button onclick="resetTimer()" class="control-btn py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-arrow-counter-clockwise text-lg"></i>
+                        <span>되돌리기 (R)</span>
+                    </button>
+
+                    <div class="flex gap-1.5">
+                        <button id="muteBtn" onclick="toggleMute()" class="control-btn flex-1 py-2.5 px-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5">
+                            <i id="muteIcon" class="ph-fill ph-speaker-high text-lg text-teal-600"></i>
+                            <span id="muteText">종소리 켜짐</span>
+                        </button>
+                        <button onclick="cycleSoundStyle()" id="soundStyleBtn" class="control-btn px-2.5 rounded-xl font-bold text-xs flex items-center justify-center" title="알림음 종류 변경 및 미리듣기">
+                            🔔 차임벨
+                        </button>
+                    </div>
+
+                    <button onclick="toggleFullScreen()" class="control-btn py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                        <i id="fullscreenIcon" class="ph-bold ph-corners-out text-lg"></i>
+                        <span id="fullscreenText">전체 화면 (F)</span>
+                    </button>
+                </div>
+
+                <!-- Row D: Keyboard Shortcut Legend -->
+                <div class="mt-1 flex flex-wrap items-center justify-center gap-3 text-xs font-medium" style="color: var(--text-muted);">
+                    <span class="flex items-center gap-1"><kbd class="px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono text-[11px]">Space</kbd> 시작/정지</span>
+                    <span class="flex items-center gap-1"><kbd class="px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono text-[11px]">↑/↓</kbd> ±1분 조절</span>
+                    <span class="flex items-center gap-1"><kbd class="px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono text-[11px]">R</kbd> 되돌리기</span>
+                    <span class="flex items-center gap-1"><kbd class="px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono text-[11px]">M</kbd> 음소거</span>
+                    <span class="flex items-center gap-1"><kbd class="px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono text-[11px]">F</kbd> 전체화면</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ================= BOTTOM FULL-WIDTH LINEAR PROGRESS BAR ================= -->
+    <footer class="w-full mt-4">
+        <div class="w-full h-3 bg-black/10 dark:bg-white/10 overflow-hidden relative">
+            <div id="bottomProgressBar" class="h-full transition-all duration-500 ease-out" style="width: 100%; background-color: var(--accent-normal);"></div>
+        </div>
+    </footer>
+
+    <!-- ================= MODAL 1: CUSTOM TIME INPUT ================= -->
+    <div id="customTimeModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card max-w-sm w-full rounded-3xl p-6 text-center shadow-2xl border" style="background: var(--bg-gradient-from);">
+            <h3 class="text-xl font-extrabold mb-1">타이머 시간 직접 설정</h3>
+            <p class="text-xs mb-4" style="color: var(--text-secondary);">원하는 분(Minute)과 초(Second)를 입력하세요</p>
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold mb-1">분 (Min)</label>
+                    <input id="inputMinutes" type="number" min="0" max="180" value="10" 
+                           class="w-24 text-center text-3xl font-black py-2.5 rounded-2xl border bg-white/90 text-slate-900 focus:ring-2 focus:ring-teal-500 outline-none" />
+                </div>
+                <span class="text-3xl font-black mt-4">:</span>
+                <div class="flex flex-col">
+                    <label class="text-xs font-bold mb-1">초 (Sec)</label>
+                    <input id="inputSeconds" type="number" min="0" max="59" value="0" 
+                           class="w-24 text-center text-3xl font-black py-2.5 rounded-2xl border bg-white/90 text-slate-900 focus:ring-2 focus:ring-teal-500 outline-none" />
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="closeCustomTimeModal()" class="control-btn flex-1 py-2.5 rounded-xl font-bold text-sm">취소</button>
+                <button onclick="applyCustomTime()" class="flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-teal-600 hover:bg-teal-500 transition">적용하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL 2: UX CRITIC'S IMPROVEMENT NOTES ================= -->
+    <div id="critiqueModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card max-w-2xl w-full rounded-3xl p-6 sm:p-8 shadow-2xl border max-h-[90vh] overflow-y-auto" style="background: var(--bg-gradient-from);">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="p-2 rounded-xl bg-teal-500/20 text-teal-600"><i class="ph-fill ph-sparkle text-xl"></i></span>
+                    <h3 class="text-xl font-extrabold">비평가 관점의 6가지 핵심 업그레이드</h3>
+                </div>
+                <button onclick="toggleCritiqueModal(false)" class="control-btn w-9 h-9 rounded-full flex items-center justify-center">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3.5 text-sm leading-relaxed" style="color: var(--text-secondary);">
+                <div class="p-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/50">
+                    <div class="font-bold text-base mb-0.5" style="color: var(--text-primary);">1. 밝은 강의실 프로젝터 워시아웃(Wash-out) 해결</div>
+                    기존의 연한 파스텔 배경과 회색 글씨는 형광등이 켜진 교실 스크린에서 흐릿하게 보입니다. <b>[☀️ 고대비 프로젝터]</b> 및 <b>[🌙 다크 모드]</b> 테마를 추가하여 맨 뒷자리 수강생도 숫자를 선명하게 읽을 수 있습니다.
+                </div>
+                <div class="p-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/50">
+                    <div class="font-bold text-base mb-0.5" style="color: var(--text-primary);">2. 시간 임박에 따른 3단계 시각적 컬러 피드백</div>
+                    남은 시간이 5분이든 10초든 똑같은 민트색이면 긴장감이 떨어집니다. <b>평소(민트/블루) → 20% 이하 또는 1분 미만(앰버 옐로우 경고) → 10초 미만(코랄 레드 + 맥박 애니메이션)</b>으로 시계 부채꼴과 하단 진행 바가 자동 전환됩니다.
+                </div>
+                <div class="p-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/50">
+                    <div class="font-bold text-base mb-0.5" style="color: var(--text-primary);">3. '현재 시각'과 '종료 예정 시각'의 이중 표기 & 일시정지 연동</div>
+                    단순히 "오전 11:11에 끝나요"만 있으면 지금이 몇 시인지 스마트폰을 또 봐야 합니다. 상단에 <b>실시간 현재 시각</b>을 표시하고, 타이머를 일시정지하면 종료 예정 시각이 실시간으로 늦춰지며 안내 문구가 갱신됩니다.
+                </div>
+                <div class="p-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/50">
+                    <div class="font-bold text-base mb-0.5" style="color: var(--text-primary);">4. 종료 1분 전 예비 알림음 & 내장형 신디사이저 차임벨</div>
+                    외부 MP3 파일 없이 브라우저 자체 <b>Web Audio API</b>로 고급 차임벨 화음을 합성하여 인터넷이 끊긴 강의실에서도 100% 작동합니다. 또한 쉬는 시간이 끝나기 <b>1분 전에 부드러운 예비 알림음</b>을 울려 수강생들이 자리로 돌아올 준비를 돕습니다.
+                </div>
+                <div class="p-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/50">
+                    <div class="font-bold text-base mb-0.5" style="color: var(--text-primary);">5. 원클릭 프리셋 & 상황별 타이틀 칩</div>
+                    `-1분 / +1분`을 여러 번 연타할 필요 없이 <b>3분, 5분, 10분, 15분, 30분, 50분</b> 프리셋 버튼과 <b>쉬는 시간 / 실습 시간 / 조별 토의</b> 원클릭 태그를 제공합니다.
+                </div>
+                <div class="p-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/50">
+                    <div class="font-bold text-base mb-0.5" style="color: var(--text-primary);">6. 자동 버튼 숨김 (Zen 사이니지 모드)</div>
+                    타이머 작동 중 마우스를 4초간 움직이지 않으면 조작 버튼들이 은은하게 투명해져, 프로젝터 화면에 시계와 남은 시간만 깔끔하게 남습니다.
+                </div>
+            </div>
+
+            <div class="mt-6 text-right">
+                <button onclick="toggleCritiqueModal(false)" class="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-teal-600 hover:bg-teal-500 transition">확인했습니다</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= APPLICATION LOGIC ================= -->
+    <script>
+        // --- State Variables ---
+        let initialSeconds = 10 * 60; // 10 minutes full scale (12 o'clock shows 10분)
+        let remainingSeconds = 3 * 60 + 35; // Start at 03:35 just like the classroom photo
+        let lastTickTimestamp = performance.now(); // Used for 60fps smooth clockwise sweep
+        
+        let isRunning = true;
+        let isMuted = false;
+        let preWarningEnabled = true;
+        let autoZenEnabled = true;
+        // 'remaining': 12=Total, 3=75% left, 6=50% left, 9=25% left (hand points directly to remaining time!)
+        // 'elapsed':   12=Total, 3=25% elapsed, 6=50% elapsed, 9=75% elapsed
+        let dialScaleMode = 'remaining';
+        // Sound styles: 'chime' (학교 차임벨), 'bell' (맑은 종소리), 'digital' (경쾌한 전자음)
+        const soundStyles = [
+            { id: 'chime', label: '🔔 차임벨' },
+            { id: 'bell', label: '🛎️ 맑은종' },
+            { id: 'digital', label: '🎵 알림음' }
+        ];
+        let currentSoundStyleIdx = 0;
+
+        let timerInterval = null;
+        let animFrameId = null;
+        let zenTimeout = null;
+        let audioCtx = null;
+        let masterCompressor = null;
+
+        // --- Initialize Clock Face Ticks on Load ---
+        function initClockTicks() {
+            const ticksGroup = document.getElementById('minuteTicks');
+            let svgTicks = '';
+            for (let i = 0; i < 60; i++) {
+                const angle = i * 6;
+                const isQuadrant = i % 15 === 0;
+                const isMajor = i % 5 === 0;
+                const y1 = -114;
+                const y2 = isQuadrant ? -101 : (isMajor ? -105 : -109);
+                const width = isQuadrant ? 3.2 : (isMajor ? 2.2 : 1.1);
+                const opacity = isQuadrant ? 0.85 : (isMajor ? 0.55 : 0.25);
+                svgTicks += `<line x1="0" y1="${y1}" x2="0" y2="${y2}" stroke="var(--text-primary)" stroke-width="${width}" opacity="${opacity}" transform="rotate(${angle})" stroke-linecap="round" />`;
+            }
+            ticksGroup.innerHTML = svgTicks;
+        }
+
+        // --- Format Dial Scale Label (e.g., 180s -> '3분', 3000s -> '50분', 90s -> '1분30초', 45s -> '45초') ---
+        function formatDialScaleLabel(sec) {
+            const rounded = Math.round(sec);
+            if (rounded <= 0) return '0초';
+            const mins = Math.floor(rounded / 60);
+            const remSec = rounded % 60;
+            if (mins === 0) {
+                return `${remSec}초`;
+            }
+            if (remSec === 0) {
+                return `${mins}분`;
+            }
+            // For compact display on 3/6/9 o'clock: ifremSec is 30 and mins >= 10, show e.g. 12.5분
+            if (remSec === 30 && mins >= 10) {
+                return `${mins}.5분`;
+            }
+            return `${mins}분${remSec}초`;
+        }
+
+        // --- Dynamically Update Clock Face Numbers Based on Total Set Time (initialSeconds) ---
+        function updateClockFaceScale() {
+            const total = Math.max(1, initialSeconds);
+            const label12 = document.getElementById('dialLabel12');
+            const label3 = document.getElementById('dialLabel3');
+            const label6 = document.getElementById('dialLabel6');
+            const label9 = document.getElementById('dialLabel9');
+            const topPill = document.getElementById('dialTopPill');
+
+            // 12 o'clock ALWAYS prominently displays the Total Set Time (e.g., 3분, 10분, 50분)
+            const topText = formatDialScaleLabel(total);
+            label12.textContent = topText;
+            // Adjust pill width dynamically if label is long
+            const pillW = Math.max(64, topText.length * 16 + 22);
+            topPill.setAttribute('width', pillW);
+            topPill.setAttribute('x', -pillW / 2);
+
+            // 3, 6, 9 o'clock show proportional milestones
+            if (dialScaleMode === 'remaining') {
+                // Hand moves clockwise (12 -> 3 -> 6 -> 9 -> 12), so at 3 o'clock 75% remains, 6 = 50%, 9 = 25%
+                label3.textContent = formatDialScaleLabel(total * 0.75);
+                label6.textContent = formatDialScaleLabel(total * 0.50);
+                label9.textContent = formatDialScaleLabel(total * 0.25);
+            } else {
+                // Elapsed mode: 3 o'clock = 25% elapsed, 6 = 50% elapsed, 9 = 75% elapsed
+                label3.textContent = formatDialScaleLabel(total * 0.25);
+                label6.textContent = formatDialScaleLabel(total * 0.50);
+                label9.textContent = formatDialScaleLabel(total * 0.75);
+            }
+
+            // Also update the 8 intermediate hour markers if total is cleanly divisible by 12 (e.g. 3분, 6분, 12분, 30분, 60분)
+            const subIds = [
+                { id: 'dialSub1', step: 1 },
+                { id: 'dialSub2', step: 2 },
+                { id: 'dialSub4', step: 4 },
+                { id: 'dialSub5', step: 5 },
+                { id: 'dialSub7', step: 7 },
+                { id: 'dialSub8', step: 8 },
+                { id: 'dialSub10', step: 10 },
+                { id: 'dialSub11', step: 11 }
+            ];
+
+            subIds.forEach(item => {
+                const el = document.getElementById(item.id);
+                if (!el) return;
+                const ratio = dialScaleMode === 'remaining' ? (12 - item.step) / 12 : item.step / 12;
+                const valSec = total * ratio;
+                // Show clean number if whole minutes or clean 5-sec multiple on short timers
+                if (total >= 720 && Math.round(valSec) % 60 === 0) {
+                    el.textContent = `${Math.round(valSec / 60)}`;
+                } else if (total < 720 && Math.round(valSec) % 15 === 0) {
+                    const m = Math.floor(Math.round(valSec) / 60);
+                    const s = Math.round(valSec) % 60;
+                    el.textContent = m > 0 && s === 0 ? `${m}분` : (m === 0 ? `${s}초` : '·');
+                } else {
+                    el.textContent = '·';
+                }
+            });
+        }
+
+        function toggleDialScaleMode() {
+            dialScaleMode = dialScaleMode === 'remaining' ? 'elapsed' : 'remaining';
+            document.getElementById('dialScaleModeText').textContent = 
+                dialScaleMode === 'remaining' ? '눈금: 남은시간 기준' : '눈금: 경과시간 기준';
+            playClickTick();
+            updateClockFaceScale();
+        }
+
+        // --- High-Output Web Audio API Synthesizer (Guaranteed Unlock & Loud Clarity) ---
+        function ensureAudioContext() {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return null;
+
+            if (!audioCtx) {
+                audioCtx = new AudioContextClass();
+                // Create DynamicsCompressor to boost volume safely without clipping on classroom speakers
+                masterCompressor = audioCtx.createDynamicsCompressor();
+                masterCompressor.threshold.setValueAtTime(-18, audioCtx.currentTime);
+                masterCompressor.knee.setValueAtTime(12, audioCtx.currentTime);
+                masterCompressor.ratio.setValueAtTime(4, audioCtx.currentTime);
+                masterCompressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+                masterCompressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+                masterCompressor.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const badge = document.getElementById('audioStatusBadge');
+            if (badge && !isMuted) {
+                badge.textContent = '🔔 소리 테스트 (준비됨)';
+            }
+            return audioCtx;
+        }
+
+        // Subtle tactile UI click sound so user immediately knows audio works
+        function playClickTick() {
+            if (isMuted) return;
+            try {
+                const ctx = ensureAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(440, now + 0.045);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.18, now + 0.005);
+                gain.gain.linearRampToValueAtTime(0.0001, now + 0.05);
+
+                osc.connect(gain);
+                gain.connect(masterCompressor || ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.055);
+            } catch (err) {
+                // Ignore if blocked
+            }
+        }
+
+        function playBellSound(type = 'finish') {
+            if (isMuted && type !== 'test') return;
+            try {
+                const ctx = ensureAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime + 0.02;
+                const style = soundStyles[currentSoundStyleIdx].id;
+
+                // Visual Bell Shake Feedback whenever sound plays
+                const bells = document.getElementById('alarmBells');
+                bells.classList.add('bell-ringing');
+                setTimeout(() => {
+                    if (remainingSeconds > 0) bells.classList.remove('bell-ringing');
+                }, 1800);
+
+                if (type === 'prewarn') {
+                    // Gentle 2-note chime for 1-minute remaining
+                    playRichBellNote(ctx, 587.33, now, 0.55, 0.55, style);       // D5
+                    playRichBellNote(ctx, 880.00, now + 0.28, 0.95, 0.65, style); // A5
+                    return;
+                }
+
+                if (style === 'chime') {
+                    // Classic Westminster School Chime (Loud & Warm)
+                    const notes = [
+                        { freq: 659.25, time: 0.00, dur: 0.65 }, // E5
+                        { freq: 587.33, time: 0.42, dur: 0.65 }, // D5
+                        { freq: 523.25, time: 0.84, dur: 0.65 }, // C5
+                        { freq: 783.99, time: 1.26, dur: 1.65 }  // G5
+                    ];
+                    notes.forEach(n => playRichBellNote(ctx, n.freq, now + n.time, n.dur, 0.75, 'chime'));
+                } else if (style === 'bell') {
+                    // Brass Alarm Bell Double Ring
+                    const rings = [0, 0.18, 0.36, 0.75, 0.93, 1.11];
+                    rings.forEach(t => {
+                        playRichBellNote(ctx, 1046.50, now + t, 0.25, 0.8, 'bell'); // C6
+                        playRichBellNote(ctx, 1567.98, now + t + 0.07, 0.25, 0.65, 'bell'); // G6
+                    });
+                } else {
+                    // Cheerful Digital Marimba Arpeggio
+                    const notes = [
+                        { freq: 523.25, time: 0.00, dur: 0.25 }, // C5
+                        { freq: 659.25, time: 0.14, dur: 0.25 }, // E5
+                        { freq: 783.99, time: 0.28, dur: 0.25 }, // G5
+                        { freq: 1046.50, time: 0.42, dur: 0.90 } // C6
+                    ];
+                    notes.forEach(n => playRichBellNote(ctx, n.freq, now + n.time, n.dur, 0.8, 'digital'));
+                }
+            } catch (e) {
+                console.warn('Audio playback error:', e);
+            }
+        }
+
+        function playRichBellNote(ctx, freq, startTime, duration, volume, style) {
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const osc3 = ctx.createOscillator();
+            const noteGain = ctx.createGain();
+
+            if (style === 'bell') {
+                osc1.type = 'triangle';
+                osc2.type = 'sine';
+                osc3.type = 'square';
+                osc1.frequency.setValueAtTime(freq, startTime);
+                osc2.frequency.setValueAtTime(freq * 2.4, startTime); // Metallic bell harmonic
+                osc3.frequency.setValueAtTime(freq * 0.5, startTime);
+            } else if (style === 'digital') {
+                osc1.type = 'triangle';
+                osc2.type = 'sine';
+                osc3.type = 'sine';
+                osc1.frequency.setValueAtTime(freq, startTime);
+                osc2.frequency.setValueAtTime(freq * 2, startTime);
+                osc3.frequency.setValueAtTime(freq * 3, startTime);
+            } else {
+                // 'chime'
+                osc1.type = 'sine';
+                osc2.type = 'triangle';
+                osc3.type = 'sine';
+                osc1.frequency.setValueAtTime(freq, startTime);
+                osc2.frequency.setValueAtTime(freq * 2, startTime);
+                osc3.frequency.setValueAtTime(freq * 3, startTime);
+            }
+
+            const g1 = ctx.createGain();
+            const g2 = ctx.createGain();
+            const g3 = ctx.createGain();
+            g1.gain.value = 0.65;
+            g2.gain.value = 0.25;
+            g3.gain.value = 0.10;
+
+            // Use safe linear attack + exponential release so browsers never silence the envelope
+            noteGain.gain.setValueAtTime(0.0001, startTime);
+            noteGain.gain.linearRampToValueAtTime(volume, startTime + 0.015);
+            noteGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+            osc1.connect(g1);
+            osc2.connect(g2);
+            osc3.connect(g3);
+            g1.connect(noteGain);
+            g2.connect(noteGain);
+            g3.connect(noteGain);
+            noteGain.connect(masterCompressor || ctx.destination);
+
+            osc1.start(startTime);
+            osc2.start(startTime);
+            osc3.start(startTime);
+            osc1.stop(startTime + duration + 0.05);
+            osc2.stop(startTime + duration + 0.05);
+            osc3.stop(startTime + duration + 0.05);
+        }
+
+        function testBellNow() {
+            if (isMuted) {
+                isMuted = false;
+                updateMuteUI();
+            }
+            playBellSound('test');
+        }
+
+        function cycleSoundStyle() {
+            currentSoundStyleIdx = (currentSoundStyleIdx + 1) % soundStyles.length;
+            const current = soundStyles[currentSoundStyleIdx];
+            document.getElementById('soundStyleBtn').textContent = current.label;
+            testBellNow();
+        }
+
+        // Unlock Web Audio automatically on the first user gesture anywhere in the document
+        ['pointerdown', 'keydown', 'touchstart'].forEach(evtName => {
+            window.addEventListener(evtName, () => {
+                ensureAudioContext();
+            }, { once: true, passive: true });
+        });
+
+        // --- Format Helpers ---
+        function formatMMSS(totalSec) {
+            const mins = Math.floor(totalSec / 60);
+            const secs = totalSec % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function formatKoreanTime(dateObj, includeSeconds = false) {
+            let hours = dateObj.getHours();
+            const mins = String(dateObj.getMinutes()).padStart(2, '0');
+            const secs = String(dateObj.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? '오후' : '오전';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return includeSeconds 
+                ? `${ampm} ${hours}:${mins}:${secs}`
+                : `${ampm} ${hours}:${mins}`;
+        }
+
+        // --- Update SVG Analog Clock Sector & Hands (STRICT CLOCKWISE PROGRESSION) ---
+        function updateAnalogClock(smoothRemainingSec = remainingSeconds) {
+            // Calculate elapsed vs remaining ratio (0.0 -> 1.0)
+            const clampedRem = Math.max(0, Math.min(initialSeconds, smoothRemainingSec));
+            const remainingRatio = initialSeconds > 0 ? (clampedRem / initialSeconds) : 0;
+            const elapsedRatio = 1 - remainingRatio;
+
+            // Clockwise angle from 12 o'clock (0 deg -> 90 deg -> 180 deg -> 270 deg -> 360 deg)
+            const elapsedDegree = elapsedRatio * 360;
+            const remainingDegree = remainingRatio * 360;
+
+            const pathEl = document.getElementById('timeSectorPath');
+            const r = 114;
+
+            if (remainingDegree <= 0.1) {
+                // Time is up: no sector remaining
+                pathEl.setAttribute('d', '');
+            } else if (remainingDegree >= 359.9) {
+                // Full circle at start (100% remaining)
+                pathEl.setAttribute('d', `M 0 0 L 0 -${r} A ${r} ${r} 0 1 1 -0.01 -${r} Z`);
+            } else {
+                // CLOCKWISE SHRINKING SECTOR:
+                // Starts at the current clockwise hand position (elapsedDegree) and sweeps clockwise to 12 o'clock (360 deg).
+                // As time progresses clockwise, the leading edge at elapsedDegree wipes away the colored sector clockwise!
+                const startRad = (elapsedDegree - 90) * (Math.PI / 180);
+                const startX = r * Math.cos(startRad);
+                const startY = r * Math.sin(startRad);
+                const endX = 0;
+                const endY = -r; // 12 o'clock (360 deg)
+                const largeArc = remainingDegree > 180 ? 1 : 0;
+
+                // sweep-flag = 1 draws the arc clockwise from (startX, startY) to 12 o'clock (endX, endY)
+                pathEl.setAttribute(
+                    'd',
+                    `M 0 0 L ${startX.toFixed(2)} ${startY.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${endX} ${endY} Z`
+                );
+            }
+
+            // Rotate Main Sweep Hand CLOCKWISE (0 deg -> 360 deg as time elapses)
+            document.getElementById('clockMinuteHandGroup').setAttribute('transform', `rotate(${elapsedDegree.toFixed(2)})`);
+
+            // Rotate Second Hand CLOCKWISE (0 deg -> 360 deg every minute)
+            const elapsedSecondsFloat = Math.max(0, initialSeconds - clampedRem);
+            const secDegree = ((elapsedSecondsFloat % 60) / 60) * 360;
+            document.getElementById('clockSecondHandGroup').setAttribute('transform', `rotate(${secDegree.toFixed(2)})`);
+
+            // Move Runner CLOCKWISE along the front/right curve of the isometric track
+            const trackRad = (elapsedDegree - 90) * (Math.PI / 180);
+            const runnerX = 375 + Math.cos(trackRad) * 26;
+            const runnerY = 315 + Math.sin(trackRad) * 14;
+            document.getElementById('runnerOrbitWrapper').setAttribute('transform', `translate(${runnerX.toFixed(1)}, ${runnerY.toFixed(1)})`);
+        }
+
+        // --- Smooth 60fps Animation Loop for Clockwise Hands & Sector ---
+        function startSmoothClockLoop() {
+            function frame(now) {
+                if (isRunning && remainingSeconds > 0) {
+                    const subSecondElapsed = Math.min(1, Math.max(0, (now - lastTickTimestamp) / 1000));
+                    const smoothRem = Math.max(0, remainingSeconds - subSecondElapsed);
+                    updateAnalogClock(smoothRem);
+                }
+                animFrameId = requestAnimationFrame(frame);
+            }
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            animFrameId = requestAnimationFrame(frame);
+        }
+
+        // --- Main UI Render Function ---
+        function updateUI() {
+            // 0. Update Dynamic Clock Dial Numbers (12 o'clock = Total Set Time, 3/6/9 = Proportional)
+            updateClockFaceScale();
+
+            // 1. Digital Display
+            const digitalEl = document.getElementById('digitalDisplay');
+            digitalEl.textContent = formatMMSS(remainingSeconds);
+
+            // 2. Urgency Color State (Normal -> Warning < 20% or <= 60s -> Danger <= 10s)
+            const ratio = initialSeconds > 0 ? (remainingSeconds / initialSeconds) : 0;
+            const pct = Math.round(ratio * 100);
+            document.getElementById('progressPercentText').textContent = `남은 비율 ${pct}%`;
+            
+            // Bottom progress bar also progresses smoothly
+            document.getElementById('bottomProgressBar').style.width = `${pct}%`;
+
+            let activeAccent = 'var(--accent-normal)';
+            digitalEl.classList.remove('urgent-pulse');
+            document.getElementById('alarmBells').classList.remove('bell-ringing');
+
+            if (remainingSeconds === 0) {
+                activeAccent = 'var(--accent-danger)';
+                document.getElementById('alarmBells').classList.add('bell-ringing');
+            } else if (remainingSeconds <= 10) {
+                activeAccent = 'var(--accent-danger)';
+                digitalEl.classList.add('urgent-pulse');
+            } else if (remainingSeconds <= 60 || ratio <= 0.2) {
+                activeAccent = 'var(--accent-warning)';
+            }
+
+            document.getElementById('timeSectorPath').style.fill = activeAccent;
+            document.getElementById('dialTopPill').style.fill = activeAccent;
+            document.getElementById('bottomProgressBar').style.backgroundColor = activeAccent;
+            document.getElementById('endTimeIcon').style.color = activeAccent;
+            document.getElementById('statusDot').style.backgroundColor = activeAccent;
+
+            // 3. Real-time Clock & Dynamic End Time
+            const now = new Date();
+            document.getElementById('realTimeClock').textContent = formatKoreanTime(now, true);
+
+            const endDate = new Date(now.getTime() + remainingSeconds * 1000);
+            const endTimeStr = formatKoreanTime(endDate, false);
+            const endTimeMainEl = document.getElementById('endTimeMainText');
+            const endTimeSubEl = document.getElementById('endTimeSubText');
+
+            if (remainingSeconds === 0) {
+                endTimeMainEl.textContent = `종료 시간이 되었습니다!`;
+                endTimeSubEl.textContent = `수업 및 다음 일정을 시작해 주세요`;
+            } else if (isRunning) {
+                endTimeMainEl.textContent = `${endTimeStr}에 끝나요`;
+                const minsLeft = Math.ceil(remainingSeconds / 60);
+                endTimeSubEl.textContent = `약 ${minsLeft}분 뒤 일정이 재개됩니다`;
+            } else {
+                endTimeMainEl.textContent = `${endTimeStr}에 끝나요 (일시정지됨)`;
+                endTimeSubEl.textContent = `타이머가 멈춰 있어 종료 시각이 함께 연장됩니다`;
+            }
+
+            // 4. Play / Pause Button & Runner Animation State
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const playPauseIcon = document.getElementById('playPauseIcon');
+            const playPauseText = document.getElementById('playPauseText');
+            const runnerChar = document.getElementById('runnerCharacter');
+            const runnerSweat = document.getElementById('runnerSweat');
+            const liveDotPing = document.getElementById('liveDotPing');
+
+            if (isRunning && remainingSeconds > 0) {
+                playPauseBtn.style.backgroundColor = activeAccent;
+                playPauseIcon.className = 'ph-fill ph-pause text-2xl';
+                playPauseText.textContent = '일시정지';
+                runnerChar.classList.add('runner-active');
+                runnerSweat.style.display = 'block';
+                liveDotPing.style.display = 'inline-flex';
+            } else {
+                playPauseBtn.style.backgroundColor = '#475569';
+                playPauseIcon.className = 'ph-fill ph-play text-2xl';
+                playPauseText.textContent = remainingSeconds === 0 ? '다시 시작' : '시작하기';
+                runnerChar.classList.remove('runner-active');
+                runnerSweat.style.display = 'none';
+                liveDotPing.style.display = 'none';
+            }
+
+            // 5. Update Analog Clock SVG
+            updateAnalogClock(remainingSeconds);
+        }
+
+        // --- Timer Tick Loop ---
+        function startInterval() {
+            if (timerInterval) clearInterval(timerInterval);
+            lastTickTimestamp = performance.now();
+            timerInterval = setInterval(() => {
+                lastTickTimestamp = performance.now();
+                // Always refresh real-time clock every second
+                if (isRunning && remainingSeconds > 0) {
+                    remainingSeconds--;
+
+                    // 1-Minute Pre-warning chime
+                    if (preWarningEnabled && remainingSeconds === 60 && initialSeconds > 60) {
+                        playBellSound('prewarn');
+                    }
+
+                    // Finish chime
+                    if (remainingSeconds === 0) {
+                        isRunning = false;
+                        playBellSound('finish');
+                        wakeUpZen();
+                    }
+                }
+                updateUI();
+            }, 1000);
+        }
+
+        // --- Controls ---
+        function toggleTimer() {
+            ensureAudioContext();
+            playClickTick();
+            if (remainingSeconds === 0) {
+                remainingSeconds = initialSeconds;
+                isRunning = true;
+            } else {
+                isRunning = !isRunning;
+            }
+            lastTickTimestamp = performance.now();
+            updateUI();
+        }
+
+        function resetTimer() {
+            playClickTick();
+            remainingSeconds = initialSeconds;
+            isRunning = false;
+            lastTickTimestamp = performance.now();
+            updateUI();
+        }
+
+        function adjustTime(deltaSeconds) {
+            playClickTick();
+            const newRemaining = Math.max(0, remainingSeconds + deltaSeconds);
+            // If timer was at full capacity or newRemaining exceeds initialSeconds, update total scale (12 o'clock) together
+            if (remainingSeconds === initialSeconds || newRemaining > initialSeconds) {
+                initialSeconds = Math.max(10, newRemaining);
+            }
+            remainingSeconds = newRemaining;
+            lastTickTimestamp = performance.now();
+            updateUI();
+        }
+
+        function setPresetMinutes(mins) {
+            playClickTick();
+            initialSeconds = mins * 60;
+            remainingSeconds = initialSeconds;
+            isRunning = true;
+            lastTickTimestamp = performance.now();
+            updateUI();
+        }
+
+        function setActivityTitle(titleText) {
+            playClickTick();
+            document.getElementById('activityTitle').textContent = titleText;
+        }
+
+        function focusTitleEdit() {
+            const el = document.getElementById('activityTitle');
+            el.focus();
+        }
+
+        // --- Mute & Pre-Warning Controls ---
+        function updateMuteUI() {
+            const icon = document.getElementById('muteIcon');
+            const text = document.getElementById('muteText');
+            const badge = document.getElementById('audioStatusBadge');
+            if (isMuted) {
+                icon.className = 'ph-fill ph-speaker-slash text-lg text-rose-500';
+                text.textContent = '음소거됨';
+                if (badge) badge.textContent = '🔇 음소거 해제 및 테스트';
+            } else {
+                icon.className = 'ph-fill ph-speaker-high text-lg text-teal-600';
+                text.textContent = '종소리 켜짐';
+                if (badge) badge.textContent = '🔔 소리 테스트 (준비됨)';
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            updateMuteUI();
+            if (!isMuted) {
+                playBellSound('test');
+            }
+        }
+
+        function togglePreWarning() {
+            preWarningEnabled = !preWarningEnabled;
+            playClickTick();
+            document.getElementById('preWarnState').textContent = preWarningEnabled ? '켜짐' : '꺼짐';
+        }
+
+        // --- Theme Switching ---
+        function setTheme(themeName) {
+            if (themeName === 'pastel') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', themeName);
+            }
+
+            const themes = ['pastel', 'high-contrast', 'dark'];
+            themes.forEach(t => {
+                const btn = document.getElementById(`theme-${t}`);
+                if (t === themeName) {
+                    btn.className = 'px-3 py-1.5 rounded-full transition-all bg-teal-600 text-white shadow-sm';
+                } else {
+                    btn.className = 'px-3 py-1.5 rounded-full transition-all hover:opacity-80';
+                }
+            });
+            updateUI();
+        }
+
+        // --- Fullscreen Control ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.warn('Fullscreen request failed:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fullscreenIcon');
+            const text = document.getElementById('fullscreenText');
+            if (document.fullscreenElement) {
+                icon.className = 'ph-bold ph-corners-in text-lg';
+                text.textContent = '전체화면 종료';
+            } else {
+                icon.className = 'ph-bold ph-corners-out text-lg';
+                text.textContent = '전체 화면 (F)';
+            }
+        });
+
+        // --- Custom Time Modal ---
+        function openCustomTimeModal() {
+            const mins = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            document.getElementById('inputMinutes').value = mins;
+            document.getElementById('inputSeconds').value = secs;
+            const modal = document.getElementById('customTimeModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('inputMinutes').focus();
+        }
+
+        function closeCustomTimeModal() {
+            const modal = document.getElementById('customTimeModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function applyCustomTime() {
+            const mins = parseInt(document.getElementById('inputMinutes').value, 10) || 0;
+            const secs = parseInt(document.getElementById('inputSeconds').value, 10) || 0;
+            const total = Math.max(1, mins * 60 + secs);
+            initialSeconds = total;
+            remainingSeconds = total;
+            isRunning = true;
+            lastTickTimestamp = performance.now();
+            closeCustomTimeModal();
+            updateUI();
+        }
+
+        // --- Critique Modal ---
+        function toggleCritiqueModal(show) {
+            const modal = document.getElementById('critiqueModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // --- Auto-Hide Controls (Zen Mode) ---
+        function toggleAutoZen() {
+            autoZenEnabled = !autoZenEnabled;
+            document.getElementById('zenState').textContent = autoZenEnabled ? '켜짐' : '꺼짐';
+            if (!autoZenEnabled) {
+                document.body.classList.remove('zen-active');
+                clearTimeout(zenTimeout);
+            } else {
+                scheduleZenDim();
+            }
+        }
+
+        function wakeUpZen() {
+            document.body.classList.remove('zen-active');
+            scheduleZenDim();
+        }
+
+        function scheduleZenDim() {
+            clearTimeout(zenTimeout);
+            if (!autoZenEnabled) return;
+            zenTimeout = setTimeout(() => {
+                if (isRunning && remainingSeconds > 10) {
+                    document.body.classList.add('zen-active');
+                }
+            }, 4500);
+        }
+
+        window.addEventListener('mousemove', wakeUpZen);
+        window.addEventListener('keydown', wakeUpZen);
+        window.addEventListener('touchstart', wakeUpZen);
+
+        // --- Keyboard Shortcuts ---
+        window.addEventListener('keydown', (e) => {
+            // Ignore shortcuts when typing in title or custom time modal
+            if (document.activeElement.isContentEditable || document.activeElement.tagName === 'INPUT') {
+                return;
+            }
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
+            } else if (e.key === 'r' || e.key === 'R' || e.key === 'ㄱ') {
+                resetTimer();
+            } else if (e.key === 'm' || e.key === 'M' || e.key === 'ㅡ') {
+                toggleMute();
+            } else if (e.key === 'f' || e.key === 'F' || e.key === 'ㄹ') {
+                toggleFullScreen();
+            } else if (e.code === 'ArrowUp') {
+                e.preventDefault();
+                adjustTime(60);
+            } else if (e.code === 'ArrowDown') {
+                e.preventDefault();
+                adjustTime(-60);
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                adjustTime(10);
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                adjustTime(-10);
+            }
+        });
+
+        // --- Start on Window Load ---
+        window.onload = function () {
+            initClockTicks();
+            updateUI();
+            startInterval();
+            startSmoothClockLoop();
+            scheduleZenDim();
+        };
+    </script>
+</body>
+>>>>>>> d31301008f19aaf6243132ef38ebbf7b47dd83fb
 </html>
